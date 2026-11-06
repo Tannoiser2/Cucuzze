@@ -1,11 +1,12 @@
 const http=require("http"),fs=require("fs"),path=require("path"),crypto=require("crypto");
 const PORT=Number(process.env.PORT||8080),ROOT=path.join(__dirname,"public"),games=new Map();
+const os=require("os");const ips=Object.values(os.networkInterfaces()).flat().filter(x=>x&&x.family==="IPv4"&&!x.internal);const LAN_IP=(ips[0]||{}).address||"localhost";
 const rand=()=>1+Math.floor(Math.random()*6),id=()=>crypto.randomBytes(8).toString("hex");
 const stages=["Alba","Tramonto","Notte"];
 const ACTIONS=[["semina","contadino","cinghiale"],["raccolto","recinto","mercato"],["procioni","guardia","sabotaggio"]];
 const out=(res,code,obj)=>{res.writeHead(code,{"content-type":"application/json;charset=utf-8","cache-control":"no-store"});res.end(JSON.stringify(obj))};
 const log=(g,s)=>{g.history.push(s);g.history=g.history.slice(-28)};
-function view(g,token){let me=g.players.find(p=>p.token===token);return {code:g.code,started:g.started,finished:g.finished,day:g.day,stage:g.stage,board:g.board.map((v,i)=>i<=g.stage?v:null),farmer:g.farmer,boar:g.boar,players:g.players.map(p=>({id:p.id,name:p.name,pumpkins:p.pumpkins,seeds:p.seeds,fence:p.fence,ready:p.ready})),me:me?{id:me.id,name:me.name,dice:me.dice,spent:me.spent,orders:me.orders,ready:me.ready}:null,history:g.history.slice(-12),host:!me}};
+function view(g,token){let me=g.players.find(p=>p.token===token);return {joinUrl:"http://"+LAN_IP+":"+PORT+"/?code="+g.code,code:g.code,started:g.started,finished:g.finished,day:g.day,stage:g.stage,board:g.board.map((v,i)=>i<=g.stage?v:null),farmer:g.farmer,boar:g.boar,players:g.players.map(p=>({id:p.id,name:p.name,pumpkins:p.pumpkins,seeds:p.seeds,fence:p.fence,ready:p.ready})),me:me?{id:me.id,name:me.name,dice:me.dice,spent:me.spent,orders:me.orders,ready:me.ready}:null,history:g.history.slice(-12),host:!me}};
 function broadcast(g){for(const c of [...g.clients]){try{c.res.write("data: "+JSON.stringify(view(g,c.token))+"\n\n")}catch{g.clients.delete(c)}}}
 function newGame(){let code;do{code=String(Math.floor(1000+Math.random()*9000))}while(games.has(code));let g={code,started:false,finished:false,day:1,stage:0,board:[rand(),rand(),rand()],players:[],farmer:0,boar:0,history:[],clients:new Set()};games.set(code,g);return g}
 function combination(g,p,order){let own=order.dice.map(i=>p.dice[i]),pool=own.concat(g.board.slice(0,g.stage+1));return {pair:own.some(n=>pool.filter(x=>x===n).length>=2),straight:own.some(n=>pool.includes(n-1)&&pool.includes(n+1))}};
