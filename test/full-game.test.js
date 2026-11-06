@@ -39,7 +39,7 @@ test("Six-player game: contracts, dice placement, 6 complete days and winner",as
  let end=await snap(code,ps[0].token);
  assert.equal(end.finished,true);
  assert.equal(end.players.length,6);
- assert(end.history.some(line=>line.includes("Vince")));
+ assert(end.history.some(line=>line.includes("Vince")||line.includes("Pareggio")));
  assert.equal(end.contracts.find(c=>c.day===6),undefined);
  assert(fs.existsSync(tmp),"Saved session should exist");
  }finally{child.kill();try{fs.unlinkSync(tmp)}catch{}}

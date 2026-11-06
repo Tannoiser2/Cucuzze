@@ -22,6 +22,6 @@ test('TV can create an online room without a browser history collision',()=>{
  assert.ok(Peer.last,'the TV must create a Peer');
  assert.doesNotThrow(()=>Peer.last.listeners.open(Peer.last.id));
  assert.equal(changed.length,1,'the room opened and updated browser history');
- assert.match(elements.app.innerHTML,/Sala d’attesa/);
+ assert.match(elements.app.innerHTML,/Sala d'attesa/);
  assert.match(elements.app.innerHTML,/Codice/);
 });

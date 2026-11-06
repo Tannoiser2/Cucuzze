@@ -14,6 +14,11 @@ La TV ospita la partita nel browser. I cellulari si connettono via **WebRTC con 
 
 Se l'indirizzo mostra 404: apri [Settings → Pages](https://github.com/Tannoiser2/Cucuzze/settings/pages) e seleziona **Source: GitHub Actions**. Il workflow `.github/workflows/pages.yml` pubblica automaticamente i file della cartella `docs/`. Poi verifica lo stato dalla scheda [Actions](https://github.com/Tannoiser2/Cucuzze/actions). È una configurazione di pubblicazione GitHub, **non** un server da avviare a ogni partita.
 
+### Se qualcosa va storto durante la serata
+- **La TV ricarica la pagina o si spegne**: riapri l'indirizzo e premi **Riprendi la partita in corso**. La partita è salvata nel browser della TV a ogni mossa; i telefoni mostrano "ricollegamento in corso" e rientrano da soli.
+- **Un telefono si scarica o un invitato sparisce**: sulla TV compare "telefono scollegato" e il pulsante **Avanza senza aspettare chi manca** (va premuto due volte). Le azioni già piazzate da quel giocatore valgono comunque.
+- L'interfaccia non usa emoji né simboli speciali: dadi e icone sono disegnati, così si vedono anche sui browser delle Smart TV.
+
 Il vecchio server Node.js rimane nel repository esclusivamente come **alternativa per test locali**, e non è necessario per la modalità normale.
 
 ---

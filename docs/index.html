@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#17291f"><title>🎃 Cucuzze — Gioca</title>
+<meta name="theme-color" content="#17291f"><title>Cucuzze - Gioca</title>
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -19,11 +19,18 @@ input,select{width:100%;margin:8px 0 14px}label{display:block;font-weight:650;ma
 .die small{font-size:11px;color:#4b5748}.die.hidden{background:#4d664c;color:#eee}.die.spent{opacity:.3}.die.selected{background:#ffe9a5;border:3px solid #9beb8d}
 .farm{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:11px;margin:12px 0}
 .plot{padding:12px;border-radius:15px;border:2px solid #849d6e;text-align:center;background:linear-gradient(150deg,#4e7544 0%,#3b603c 50%,#82603a 51%,#4c3b25)}
-.plot .fruit{min-height:42px;font-size:24px;letter-spacing:-5px;padding-right:5px;overflow-wrap:anywhere}.plot small{display:block;background:#1a2c1ac9;border-radius:7px;padding:5px}
+.plot .fruit{min-height:42px;padding:4px 0}.plot small{display:block;background:#1a2c1ac9;border-radius:7px;padding:5px}
 .contract{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #526e55;flex-wrap:wrap}
 .contract button{padding:7px 10px}.history{max-height:250px;overflow:auto}.history div{padding:5px 0;border-bottom:1px solid #526c55}
 .tag{background:#192f20;border-radius:12px;padding:8px 12px;display:inline-block;margin:5px;color:#ffdda0}
 #qrcode{display:flex;justify-content:center;margin:14px auto}#qrcode img{padding:10px;background:white;border-radius:12px}
 a{color:#ffe49d;overflow-wrap:anywhere}summary{cursor:pointer;font-size:19px;font-weight:bold}.message{position:fixed;bottom:14px;left:4%;right:4%;background:#992a26;padding:12px;border-radius:10px;text-align:center;display:none;z-index:10}.message.visible{display:block}
+.pips{width:40px;height:40px;fill:#23372c}.die .q{font-size:30px;font-weight:800}.die.mini{min-width:30px;min-height:30px;padding:2px;display:inline-flex;margin-left:4px}.die.mini .pips{width:22px;height:22px}
+.ico{width:1.35em;height:1.35em;vertical-align:-.3em}.fruit .ico{width:26px;height:26px;margin:0 -3px}.more{margin-left:6px;color:var(--gold)}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0}.stat{background:#1a2c1ac9;border-radius:8px;padding:4px 8px}.stat b{margin-left:4px}.stats.big{font-size:20px}
+.markers{min-height:26px}.pill{display:inline-block;border-radius:20px;padding:2px 9px;margin:2px;font-size:13px;font-weight:800}.pill.farmer{background:#bcf3ab;color:#1d3925}.pill.boar{background:#7a4a2a;color:#fff}
+.warn{color:#ffb4a4;font-weight:700}.betray{color:#ffb4a4;font-weight:800}.combo{font-weight:700;color:var(--gold);min-height:1.2em}.small{font-size:13px}
+.order{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #526e55}
+.offline{position:sticky;top:0;z-index:9;background:#992a26;padding:10px;border-radius:10px;text-align:center;font-weight:700}
 @media(max-width:600px){.panel{padding:13px}.die{min-width:47px;min-height:53px;font-size:27px}.row,.dice{gap:5px}.actions button{padding:10px}}
-</style></head><body><main id="app"><div class="intro"><h1>🎃 CUCUZZE</h1><p>Caricamento gioco...</p></div></main><div id="toast" class="message"></div><script src="./game.js?v=20261106-roomfix"></script></body></html>
+</style></head><body><main id="app"><div class="intro"><h1>CUCUZZE</h1><p>Caricamento del gioco...</p></div></main><div id="toast" class="message"></div><script src="./game.js?v=20261106-svg-resume"></script></body></html>
