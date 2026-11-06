@@ -14,10 +14,10 @@ test("Six-player game: contracts, dice placement, 6 complete days and winner",as
  let child=spawn(process.execPath,["server.js"],{env:{...process.env,PORT:String(PORT),CUCUZZE_DATA_FILE:tmp},stdio:"pipe"});
  try{
  await alive();
- const {code}=await api("create");
+ const {code,hostToken}=await api("create");
  let ps=[];
  for(let i=0;i<6;i++)ps.push(await api("join",{code,name:"Player "+i}));
- await api("start",{code});
+ await api("start",{code,hostToken});
  let ids=await Promise.all(ps.map(p=>snap(code,p.token).then(x=>x.me.id)));
  let p=(i,more={})=>({code,token:ps[i].token,...more});
  for(let day=1;day<=6;day++){
@@ -25,16 +25,16 @@ test("Six-player game: contracts, dice placement, 6 complete days and winner",as
   assert.equal(state.day,day);assert.equal(state.stage,0);assert.equal(state.board.filter(x=>x!==null).length,1);
   for(let i=0;i<6;i++)await api("place",p(i,{action:"semina",dice:[0]}));
   for(let i=0;i<6;i++)await api("ready",p(i));
-  await api("advance",{code});
+  await api("advance",{code,hostToken});
   state=await snap(code,ps[0].token);assert.equal(state.stage,1);assert.equal(state.board.filter(x=>x!==null).length,2);
   if(day===1){await api("propose",p(0,{target:ids[1]}));let offered=await snap(code,ps[1].token);let contract=offered.contracts.find(c=>c.a===ids[0]&&c.b===ids[1]);assert.equal(contract.status,"pending");await api("respond",p(1,{contract:contract.id,accept:true}))}
   for(let i=0;i<6;i++)await api("place",p(i,{action:"raccolto",dice:[1]}));
   for(let i=0;i<6;i++)await api("ready",p(i));
-  await api("advance",{code});
+  await api("advance",{code,hostToken});
   state=await snap(code,ps[0].token);assert.equal(state.stage,2);assert.equal(state.board.filter(x=>x!==null).length,3);
   for(let i=0;i<6;i++)await api("place",p(i,{action:"guardia",dice:[2]}));
   for(let i=0;i<6;i++)await api("ready",p(i));
-  await api("advance",{code});
+  await api("advance",{code,hostToken});
  }
  let end=await snap(code,ps[0].token);
  assert.equal(end.finished,true);
