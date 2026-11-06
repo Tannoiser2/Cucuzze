@@ -1,6 +1,9 @@
 const http=require("http"),fs=require("fs"),path=require("path"),crypto=require("crypto");
 const PORT=Number(process.env.PORT||8080),ROOT=path.join(__dirname,"public"),games=new Map();
 const os=require("os");const ips=Object.values(os.networkInterfaces()).flat().filter(x=>x&&x.family==="IPv4"&&!x.internal);const LAN_IP=(ips[0]||{}).address||"localhost";
+const DATA_FILE=path.join(__dirname,".cucuzze-sessions.json");
+try{const saved=JSON.parse(fs.readFileSync(DATA_FILE,"utf8"));for(const x of saved){x.clients=new Set();if(!x.contracts)x.contracts=[];games.set(x.code,x)}}catch{}
+function persist(){const data=[...games.values()].map(({clients,...rest})=>rest);const tmp=DATA_FILE+".tmp";try{fs.writeFileSync(tmp,JSON.stringify(data));fs.renameSync(tmp,DATA_FILE)}catch(e){console.error("Non è possibile salvare la partita:",e.message)}}
 const rand=()=>1+Math.floor(Math.random()*6),id=()=>crypto.randomBytes(8).toString("hex");
 const stages=["Alba","Tramonto","Notte"];
 const ACTIONS=[["semina","contadino","cinghiale"],["raccolto","recinto","mercato"],["procioni","guardia","sabotaggio"]];
@@ -8,7 +11,7 @@ const out=(res,code,obj)=>{res.writeHead(code,{"content-type":"application/json;
 const log=(g,s)=>{g.history.push(s);g.history=g.history.slice(-28)};
 function view(g,token){let me=g.players.find(p=>p.token===token);return {joinUrl:"http://"+LAN_IP+":"+PORT+"/?code="+g.code,code:g.code,started:g.started,finished:g.finished,day:g.day,stage:g.stage,board:g.board.map((v,i)=>i<=g.stage?v:null),farmer:g.farmer,boar:g.boar,contracts:g.contracts.map(c=>({id:c.id,a:c.a,b:c.b,status:c.status,day:c.day})),players:g.players.map(p=>({id:p.id,name:p.name,pumpkins:p.pumpkins,seeds:p.seeds,fence:p.fence,ready:p.ready})),me:me?{id:me.id,name:me.name,dice:me.dice,spent:me.spent,orders:me.orders,ready:me.ready}:null,history:g.history.slice(-12),host:!me}};
 function broadcast(g){for(const c of [...g.clients]){try{c.res.write("data: "+JSON.stringify(view(g,c.token))+"\n\n")}catch{g.clients.delete(c)}}}
-function newGame(){let code;do{code=String(Math.floor(1000+Math.random()*9000))}while(games.has(code));let g={code,started:false,finished:false,day:1,stage:0,board:[rand(),rand(),rand()],players:[],farmer:0,boar:0,history:[],contracts:[],clients:new Set()};games.set(code,g);return g}
+function newGame(){let code;do{code=String(Math.floor(1000+Math.random()*9000))}while(games.has(code));let g={code,started:false,finished:false,day:1,stage:0,board:[rand(),rand(),rand()],players:[],farmer:0,boar:0,history:[],contracts:[],clients:new Set()};games.set(code,g);persist();return g}
 function combination(g,p,order){
  const own=order.dice.map(i=>p.dice[i]),pool=own.concat(g.board.slice(0,g.stage+1));
  const count=n=>pool.filter(x=>x===n).length;
@@ -45,7 +48,7 @@ function resolve(g){
  log(g,"✅ "+stages[g.stage]+" conclusa");
  if(g.stage<2)g.stage++;else if(g.day<6){g.day++;g.stage=0;g.board=[rand(),rand(),rand()];for(let p of g.players){p.dice=Array.from({length:6},rand);p.spent=[]}log(g,"☀️ Inizia il giorno "+g.day)}
  else{g.finished=true;let winners=[...g.players].sort((a,b)=>b.pumpkins-a.pumpkins);log(g,"🏆 Vince "+winners[0].name+" con "+winners[0].pumpkins+" zucche")}
- broadcast(g);
+ persist();broadcast(g);
 }
 function requestBody(req){return new Promise((ok,bad)=>{let data="";req.on("data",x=>{data+=x;if(data.length>12000)bad(Error("Richiesta troppo grande"))});req.on("end",()=>{try{ok(JSON.parse(data||"{}"))}catch{bad(Error("JSON non valido"))}})})}
 http.createServer(async(req,res)=>{
@@ -56,16 +59,16 @@ http.createServer(async(req,res)=>{
    let d=await requestBody(req),cmd=url.pathname.slice(5);
    if(cmd==="create"){let g=newGame();return out(res,200,{code:g.code})}
    let g=games.get(d.code);if(!g)throw Error("Stanza non trovata");
-   if(cmd==="join"){if(g.started||g.players.length>=10)throw Error("Stanza già avviata o piena");let name=String(d.name||"").trim().slice(0,20);if(!name)throw Error("Inserisci il nome");let p={id:id(),token:id(),name,pumpkins:5,seeds:0,fence:0,dice:[],spent:[],orders:[],ready:false};g.players.push(p);broadcast(g);return out(res,200,{token:p.token})}
-   if(cmd==="start"){if(g.started||g.players.length<2)throw Error("Servono almeno 2 giocatori");g.started=true;g.players.forEach(p=>p.dice=Array.from({length:6},rand));log(g,"🎲 Comincia Cucuzze!");broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="join"){if(g.started||g.players.length>=10)throw Error("Stanza già avviata o piena");let name=String(d.name||"").trim().slice(0,20);if(!name)throw Error("Inserisci il nome");let p={id:id(),token:id(),name,pumpkins:5,seeds:0,fence:0,dice:[],spent:[],orders:[],ready:false};g.players.push(p);persist();broadcast(g);return out(res,200,{token:p.token})}
+   if(cmd==="start"){if(g.started||g.players.length<2)throw Error("Servono almeno 2 giocatori");g.started=true;g.players.forEach(p=>p.dice=Array.from({length:6},rand));log(g,"🎲 Comincia Cucuzze!");persist();broadcast(g);return out(res,200,{ok:true})}
    if(!g.started||g.finished)throw Error("Partita non attiva");
    if(cmd==="advance"){if(!g.players.every(p=>p.ready))throw Error("Aspetta tutte le conferme");if(g.stage===1)for(const c of g.contracts.filter(c=>c.day===g.day&&c.status==="pending"))c.status="expired";resolve(g);return out(res,200,{ok:true})}
    let p=g.players.find(p=>p.token===d.token);if(!p)throw Error("Giocatore sconosciuto");
-   if(cmd==="propose"){if(g.stage!==1||p.ready)throw Error("Proponi i patti soltanto al tramonto prima di confermare");let other=g.players.find(t=>t.id===d.target&&t!==p);if(!other)throw Error("Scegli un altro giocatore");if(g.contracts.some(c=>c.day===g.day&&c.status==="pending"&&c.a===p.id))throw Error("Hai già un patto in attesa");let contract={id:id(),a:p.id,b:other.id,day:g.day,status:"pending"};g.contracts.push(contract);log(g,"🤝 "+p.name+" propone una tregua a "+other.name);broadcast(g);return out(res,200,{ok:true})}
-   if(cmd==="respond"){if(g.stage!==1||p.ready)throw Error("Il patto si accetta al tramonto");let c=g.contracts.find(c=>c.id===d.contract&&c.b===p.id&&c.status==="pending");if(!c)throw Error("Proposta non trovata");c.status=d.accept?"accepted":"rejected";log(g,d.accept?"🤝 "+p.name+" firma una tregua con "+g.players.find(z=>z.id===c.a).name:"❌ "+p.name+" rifiuta il patto");broadcast(g);return out(res,200,{ok:true})}
-   if(cmd==="place"){if(p.ready)throw Error("Già confermato");if(!ACTIONS[g.stage].includes(d.action))throw Error("Azione non disponibile");let dice=d.dice;if(!Array.isArray(dice)||dice.length<1||dice.length>3||dice.some(i=>!Number.isInteger(i)||i<0||i>=6)||new Set(dice).size!==dice.length)throw Error("Dadi non validi");let occupied=p.orders.flatMap(o=>o.dice);if(occupied.length+dice.length>3||dice.some(i=>p.spent.includes(i)||occupied.includes(i)))throw Error("Dado occupato o limite di fase raggiunto");if(["mercato","procioni","sabotaggio"].includes(d.action)&&(!g.players.some(t=>t.id===d.target&&t!==p)))throw Error("Scegli un bersaglio");p.orders.push({action:d.action,dice,target:d.target||null,direction:d.direction==="left"?"left":"right"});broadcast(g);return out(res,200,{ok:true})}
-   if(cmd==="undo"){if(p.ready)throw Error("Scelta già confermata");p.orders.pop();broadcast(g);return out(res,200,{ok:true})}
-   if(cmd==="ready"){p.ready=true;broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="propose"){if(g.stage!==1||p.ready)throw Error("Proponi i patti soltanto al tramonto prima di confermare");let other=g.players.find(t=>t.id===d.target&&t!==p);if(!other)throw Error("Scegli un altro giocatore");if(g.contracts.some(c=>c.day===g.day&&c.status==="pending"&&c.a===p.id))throw Error("Hai già un patto in attesa");let contract={id:id(),a:p.id,b:other.id,day:g.day,status:"pending"};g.contracts.push(contract);log(g,"🤝 "+p.name+" propone una tregua a "+other.name);persist();broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="respond"){if(g.stage!==1||p.ready)throw Error("Il patto si accetta al tramonto");let c=g.contracts.find(c=>c.id===d.contract&&c.b===p.id&&c.status==="pending");if(!c)throw Error("Proposta non trovata");c.status=d.accept?"accepted":"rejected";log(g,d.accept?"🤝 "+p.name+" firma una tregua con "+g.players.find(z=>z.id===c.a).name:"❌ "+p.name+" rifiuta il patto");persist();broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="place"){if(p.ready)throw Error("Già confermato");if(!ACTIONS[g.stage].includes(d.action))throw Error("Azione non disponibile");let dice=d.dice;if(!Array.isArray(dice)||dice.length<1||dice.length>3||dice.some(i=>!Number.isInteger(i)||i<0||i>=6)||new Set(dice).size!==dice.length)throw Error("Dadi non validi");let occupied=p.orders.flatMap(o=>o.dice);if(occupied.length+dice.length>3||dice.some(i=>p.spent.includes(i)||occupied.includes(i)))throw Error("Dado occupato o limite di fase raggiunto");if(["mercato","procioni","sabotaggio"].includes(d.action)&&(!g.players.some(t=>t.id===d.target&&t!==p)))throw Error("Scegli un bersaglio");p.orders.push({action:d.action,dice,target:d.target||null,direction:d.direction==="left"?"left":"right"});persist();broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="undo"){if(p.ready)throw Error("Scelta già confermata");p.orders.pop();persist();broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="ready"){p.ready=true;persist();broadcast(g);return out(res,200,{ok:true})}
    throw Error("Comando sconosciuto");
   }
   if(req.method==="GET"){let relative=url.pathname==="/"?"/index.html":url.pathname,fp=path.resolve(ROOT,"."+relative);if(!fp.startsWith(ROOT+path.sep)||!fs.existsSync(fp)||!fs.statSync(fp).isFile()){res.writeHead(404);return res.end("Not found")}let ct=fp.endsWith(".html")?"text/html; charset=utf-8":fp.endsWith(".js")?"text/javascript; charset=utf-8":"text/css; charset=utf-8";res.writeHead(200,{"content-type":ct});return fs.createReadStream(fp).pipe(res)}
