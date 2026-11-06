@@ -1,36 +1,129 @@
 <!doctype html>
-<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#17291f"><title>Cucuzze - Gioca</title>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cucuzze - La guerra degli orti</title>
+<link rel="preload" href="fonts/chewy.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Chewy";src:url(fonts/chewy.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"Nunito";src:url(fonts/nunito-700.woff2) format("woff2");font-weight:400 700;font-display:swap}
+@font-face{font-family:"Nunito";src:url(fonts/nunito-900.woff2) format("woff2");font-weight:800 900;font-display:swap}
+:root{--legno:#6b4a2a;--legno2:#4a311a;--perg:#fbf0d6;--perg2:#f3e2b8;--ink:#3b2716;--zucca:#e07b1f;--verde:#4f7a2a;--rosso:#a8321f;--blu:#23365c;--oro:#f2c14e}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Nunito",system-ui,sans-serif;font-weight:700;color:var(--ink);background:#2a1d10}
+body{background:#2a1d10 center/cover fixed no-repeat;transition:background-image .6s}
+body.ph-sala{background-image:url(assets/bg-sala.webp)}
+body.ph-alba{background-image:url(assets/bg-alba.webp)}
+body.ph-tramonto{background-image:url(assets/bg-tramonto.webp)}
+body.ph-notte{background-image:url(assets/bg-notte.webp)}
+h1,h2,h3,.titolo{font-family:"Chewy","Nunito",sans-serif;font-weight:400;letter-spacing:.5px;margin:.2em 0}
+button{font:inherit;font-weight:900;cursor:pointer;border:3px solid var(--legno2);border-radius:12px;background:var(--zucca);color:#fff;padding:.55em 1em;box-shadow:0 3px 0 var(--legno2);text-shadow:0 1px 0 #00000055}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--legno2)}
+button:disabled{background:#b9a98a;color:#f5ecd8;cursor:not-allowed;box-shadow:none}
+button.chiaro{background:var(--perg);color:var(--ink);text-shadow:none}
+button.verde{background:var(--verde)}
+button.piccolo{padding:.3em .7em;font-size:.85em;border-width:2px}
+input,select{font:inherit;font-weight:700;width:100%;padding:.6em .7em;border:2px solid var(--legno);border-radius:10px;background:#fffaf0;color:var(--ink);margin:.3em 0 .6em}
+label{display:block;font-size:.9em;margin-top:.3em}
+.pannello{background:var(--perg);border:3px solid var(--legno);border-radius:16px;box-shadow:0 6px 18px #0007,inset 0 0 0 2px #fff6;padding:1em 1.1em}
+.pannello.scuro{background:#1d2a45ee;color:#f3ead2;border-color:#0f1830}
+.muto{opacity:.75;font-weight:700}
+.centro{text-align:center}
+.riga{display:flex;gap:.6em;align-items:center;flex-wrap:wrap}
+.ico{width:1.4em;height:1.4em;vertical-align:-.35em}
+img.zucca{width:1.4em;height:1.4em;vertical-align:-.35em;object-fit:contain}
+.stat{display:inline-flex;align-items:center;gap:.2em;background:#fff8;border:2px solid #6b4a2a55;border-radius:10px;padding:.1em .45em;font-weight:900}
+.pill{display:inline-block;border-radius:999px;padding:.12em .7em;font-size:.85em;font-weight:900;border:2px solid #0002}
+.pill.bot{background:#d9c7a1}.pill.pronto{background:#bfe3a2;color:#244012}.pill.attesa{background:#f6d38b}.pill.off{background:#f0a99b;color:#5a140a}
+#toast{position:fixed;left:50%;bottom:1.2em;transform:translateX(-50%) translateY(200%);background:var(--legno2);color:#fff;padding:.7em 1.2em;border-radius:12px;transition:transform .3s;z-index:50;max-width:92vw;text-align:center}
+#toast.visibile{transform:translateX(-50%) translateY(0)}
+
+/* ---------- TV ---------- */
+body.tv{font-size:clamp(13px,1.02vw,24px)}
+.tv-wrap{display:grid;grid-template-columns:minmax(0,1fr) 25em;grid-template-rows:auto minmax(0,1fr) auto;gap:.9em;padding:.9em;min-height:100vh}
+.tv-testa{grid-column:1/3;display:flex;align-items:center;gap:1em}
+.banner{position:relative;width:24em;height:4.6em;background:url(assets/banner.webp) center/contain no-repeat;display:flex;align-items:center;justify-content:center;flex:none}
+.banner span{font-family:"Chewy";font-size:2.6em;color:var(--zucca);-webkit-text-stroke:1.5px var(--legno2);text-shadow:0 3px 0 var(--legno2);margin-top:-.1em}
+.fase{flex:1;display:flex;align-items:center;gap:1em}
+.fase .titolo{font-size:2.2em;color:#fff;text-shadow:0 3px 6px #000c}
+.evento{max-width:30em}
+.evento b{font-family:"Chewy";font-weight:400;font-size:1.25em;color:var(--rosso)}
+.campi{display:grid;grid-template-columns:repeat(auto-fill,minmax(15.5em,1fr));gap:.8em;align-content:start}
+.campo{position:relative;background:var(--perg);border:3px solid var(--legno);border-radius:16px;padding:.5em .6em .6em;box-shadow:0 5px 14px #0007;transition:transform .3s,box-shadow .3s}
+.campo .terra{height:6.2em;background:center/contain no-repeat;margin:.1em 0 .2em}
+.campo .nome{font-family:"Chewy";font-size:1.45em;line-height:1.1;display:flex;justify-content:space-between;gap:.3em;align-items:center}
+.campo .stats{display:flex;gap:.3em;flex-wrap:wrap;justify-content:center;font-size:.92em}
+.campi.molti .terra{height:4.2em}.campi.molti .campo .nome{font-size:1.2em}.campi.molti .campo .stats{font-size:.85em}.campi.molti .campo .mira{width:2.8em;height:2.8em;top:2em}
+.campo.bersaglio{box-shadow:0 0 0 4px var(--rosso),0 5px 14px #0007}
+.campo.colpito{animation:scossa .6s 3;box-shadow:0 0 0 6px var(--rosso),0 0 30px var(--rosso)}
+.campo.vincitore{box-shadow:0 0 0 6px var(--oro),0 0 34px var(--oro)}
+.campo .mira{position:absolute;top:2.4em;right:.2em;width:3.6em;height:3.6em;background:center/contain no-repeat;filter:drop-shadow(0 3px 4px #000a)}
+@keyframes scossa{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px) rotate(-1deg)}75%{transform:translateX(6px) rotate(1deg)}}
+.lato{display:flex;flex-direction:column;gap:.8em;min-height:0}
+.onda{display:grid;grid-template-columns:4.2em 1fr;gap:.6em;align-items:center;border-bottom:2px dashed #6b4a2a55;padding:.4em 0}
+.onda:last-child{border-bottom:0}
+.onda .med{width:4.2em;height:4.2em;background:center/contain no-repeat}
+.onda b.num{font-family:"Chewy";font-weight:400;font-size:1.6em;color:var(--rosso)}
+.dadi-comuni{display:flex;gap:.6em;justify-content:center}
+.dado{width:3.6em;height:3.6em;background:center/contain no-repeat;display:inline-block;position:relative}
+.dado small{position:absolute;bottom:-1.4em;left:0;right:0;text-align:center;font-size:.7em}
+.cronaca{grid-column:1/3;max-height:7.6em;overflow:hidden;font-size:.95em}
+.cronaca div{padding:.1em 0;border-bottom:1px dotted #6b4a2a44}
+.controlli{display:flex;gap:.5em;flex-wrap:wrap;justify-content:center}
+/* rivelazione */
+#rivela{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:#0008;z-index:30;padding:2em}
+#rivela.attiva{display:flex}
+.carta{width:min(46em,92vw);background:var(--perg);border:5px solid var(--legno);border-radius:22px;box-shadow:0 20px 60px #000c;overflow:hidden;animation:entra .45s cubic-bezier(.2,1.4,.4,1)}
+.carta .arte{height:13em;background:center/cover no-repeat;border-bottom:4px solid var(--legno)}
+.carta .testo{padding:1em 1.4em 1.3em;font-size:1.25em}
+.carta h2{font-size:2.1em;color:var(--rosso)}
+.carta .grande{font-family:"Chewy";font-size:1.9em;font-weight:400}
+.carta .esito{margin-top:.5em;padding:.5em .8em;border-radius:12px;background:#fff8;border:2px solid #6b4a2a44}
+.carta ul{margin:.3em 0;padding-left:1.1em}
+@keyframes entra{from{transform:scale(.6) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+.passo-avanti{animation:entra .45s}
+/* sala d'attesa */
+.sala{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.2em;padding:1.2em;min-height:100vh;align-items:start}
+.sala .qr{background:#fff;padding:.6em;border-radius:12px;display:inline-block;border:3px solid var(--legno)}
+.giocatori-sala{display:flex;flex-wrap:wrap;gap:.5em;margin:.6em 0}
+.chip{display:inline-flex;align-items:center;gap:.4em;background:#fff8;border:2px solid var(--legno);border-radius:999px;padding:.25em .4em .25em .8em}
+.regole li{margin:.25em 0}
+.podio{display:grid;gap:.5em}
+.podio .pos{display:grid;grid-template-columns:2.2em 1fr auto;align-items:center;gap:.6em;background:#fff8;border:2px solid #6b4a2a55;border-radius:12px;padding:.4em .7em}
+.podio .pos.primo{background:#ffe9a8;border-color:var(--oro)}
+.podio .n{font-family:"Chewy";font-size:1.6em;text-align:center}
+
+/* ---------- Telefono ---------- */
+body.tel{font-size:16px;background-attachment:scroll}
+.tel-wrap{max-width:560px;margin:0 auto;padding:.7em .7em 6em;display:flex;flex-direction:column;gap:.7em}
+.tel-testa{display:flex;justify-content:space-between;align-items:center;gap:.5em}
+.tel-testa .nome{font-family:"Chewy";font-size:1.6em;color:#fff;text-shadow:0 2px 4px #000c}
+.miei-dadi{display:flex;gap:1em;justify-content:center;margin:.4em 0}
+.mio-dado{display:flex;flex-direction:column;align-items:center;gap:.3em;background:none;border:0;box-shadow:none;padding:0;color:var(--ink);text-shadow:none}
+.mio-dado .dado{width:5.2em;height:5.2em;border-radius:14px;transition:transform .15s}
+.mio-dado.scelto .dado{transform:translateY(-6px) scale(1.06);filter:drop-shadow(0 0 8px var(--zucca)) drop-shadow(0 0 3px var(--zucca))}
+.mio-dado .etichetta{font-size:.8em;min-height:1.3em}
+.azioni{display:grid;grid-template-columns:1fr;gap:.5em}
+.azione{display:grid;grid-template-columns:3.4em 1fr;gap:.6em;align-items:center;text-align:left;background:var(--perg);color:var(--ink);text-shadow:none;padding:.45em .6em}
+.azione .miniatura{width:3.4em;height:3.4em;border-radius:10px;background:center/cover no-repeat;border:2px solid var(--legno)}
+.azione small{display:block;font-weight:700;opacity:.8}
+.azione.attiva{background:#ffe2a8;border-color:var(--zucca)}
+.anteprima{background:#fff8;border-radius:10px;padding:.4em .6em;margin-top:.4em;min-height:1.4em}
+.barra-conferma{position:fixed;left:0;right:0;bottom:0;padding:.7em;background:#2a1d10e6;display:flex;justify-content:center;z-index:20}
+.barra-conferma button{width:min(540px,100%);font-size:1.15em}
+.offline{background:var(--rosso);color:#fff;padding:.6em;border-radius:10px;text-align:center}
+.mio-bersaglio{background:#f9d0c6;border-color:var(--rosso)}
+@media (max-width:900px){.tv-wrap,.sala{grid-template-columns:1fr}.tv-testa,.cronaca{grid-column:auto}}
+</style>
+</head>
+<body class="ph-sala">
+<main id="app"><div class="tel-wrap"><div class="pannello centro"><h1>Cucuzze</h1><p>Caricamento del gioco...</p></div></div></main>
+<div id="rivela"></div>
+<div id="toast"></div>
 <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-:root{color-scheme:dark;--bg:#17291f;--panel:#2b4835;--ink:#fff5dc;--muted:#d2dfc8;--gold:#ffc96f}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#385b39,#17291f 70%);color:var(--ink);font:16px/1.4 system-ui,sans-serif}
-main{max-width:1100px;padding:16px 14px 60px;margin:auto}h1{color:var(--gold);font-size:clamp(30px,5vw,52px);margin:0}h2{margin:6px 0 12px;font-size:clamp(19px,3vw,28px)}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #628265}
-.panel{background:#2b4835;border:1px solid #587359;border-radius:18px;padding:18px;margin:14px 0}
-.center{text-align:center}.muted,small{color:var(--muted)}.intro{max-width:540px;margin:7vh auto;text-align:center}
-button,input,select{font:inherit;border:1px solid #70886d;border-radius:12px;padding:13px;color:#fff;background:#153121}
-button{background:linear-gradient(#ffdc95,#e9a544);color:#29251d;font-weight:800;cursor:pointer;touch-action:manipulation}
-button:disabled{opacity:.4;cursor:default}button.outline{background:#385740;color:white}button.selected{background:#bcf3ab;color:#1d3925;border:2px solid #fff}
-input,select{width:100%;margin:8px 0 14px}label{display:block;font-weight:650;margin-top:10px}
-.row,.dice,.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}.actions button{flex:1 1 130px}
-.die{min-width:55px;min-height:63px;padding:5px;background:#fff6dc;color:#23372c;border:2px solid transparent;border-radius:10px;font-size:34px;display:flex;justify-content:center;align-items:center;flex-direction:column}
-.die small{font-size:11px;color:#4b5748}.die.hidden{background:#4d664c;color:#eee}.die.spent{opacity:.3}.die.selected{background:#ffe9a5;border:3px solid #9beb8d}
-.farm{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:11px;margin:12px 0}
-.plot{padding:12px;border-radius:15px;border:2px solid #849d6e;text-align:center;background:linear-gradient(150deg,#4e7544 0%,#3b603c 50%,#82603a 51%,#4c3b25)}
-.plot .fruit{min-height:42px;padding:4px 0}.plot small{display:block;background:#1a2c1ac9;border-radius:7px;padding:5px}
-.contract{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #526e55;flex-wrap:wrap}
-.contract button{padding:7px 10px}.history{max-height:250px;overflow:auto}.history div{padding:5px 0;border-bottom:1px solid #526c55}
-.tag{background:#192f20;border-radius:12px;padding:8px 12px;display:inline-block;margin:5px;color:#ffdda0}
-#qrcode{display:flex;justify-content:center;margin:14px auto}#qrcode img{padding:10px;background:white;border-radius:12px}
-a{color:#ffe49d;overflow-wrap:anywhere}summary{cursor:pointer;font-size:19px;font-weight:bold}.message{position:fixed;bottom:14px;left:4%;right:4%;background:#992a26;padding:12px;border-radius:10px;text-align:center;display:none;z-index:10}.message.visible{display:block}
-.pips{width:40px;height:40px;fill:#23372c}.die .q{font-size:30px;font-weight:800}.die.mini{min-width:30px;min-height:30px;padding:2px;display:inline-flex;margin-left:4px}.die.mini .pips{width:22px;height:22px}
-.ico{width:1.35em;height:1.35em;vertical-align:-.3em}.fruit .ico{width:26px;height:26px;margin:0 -3px}.more{margin-left:6px;color:var(--gold)}
-.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:6px 0}.stat{background:#1a2c1ac9;border-radius:8px;padding:4px 8px}.stat b{margin-left:4px}.stats.big{font-size:20px}
-.markers{min-height:26px}.pill{display:inline-block;border-radius:20px;padding:2px 9px;margin:2px;font-size:13px;font-weight:800}.pill.farmer{background:#bcf3ab;color:#1d3925}.pill.boar{background:#7a4a2a;color:#fff}
-.warn{color:#ffb4a4;font-weight:700}.betray{color:#ffb4a4;font-weight:800}.combo{font-weight:700;color:var(--gold);min-height:1.2em}.small{font-size:13px}
-.order{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #526e55}
-.offline{position:sticky;top:0;z-index:9;background:#992a26;padding:10px;border-radius:10px;text-align:center;font-weight:700}
-@media(max-width:600px){.panel{padding:13px}.die{min-width:47px;min-height:53px;font-size:27px}.row,.dice{gap:5px}.actions button{padding:10px}}
-</style></head><body><main id="app"><div class="intro"><h1>CUCUZZE</h1><p>Caricamento del gioco...</p></div></main><div id="toast" class="message"></div><script src="./game.js?v=20261106-svg-resume"></script></body></html>
+<script src="engine.js?v=20261106-proto"></script>
+<script src="game.js?v=20261106-proto"></script>
+</body>
+</html>
