@@ -1,0 +1,4 @@
+.cucuzze-sessions.json
+.cucuzze-sessions.json.tmp
+node_modules/
+.DS_Store
