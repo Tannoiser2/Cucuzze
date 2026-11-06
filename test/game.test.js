@@ -5,7 +5,7 @@ const PORT=19138,base="http://127.0.0.1:"+PORT;
 async function post(cmd,data={}){const r=await fetch(base+"/api/"+cmd,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(data)});const value=await r.json();if(!r.ok)throw Error(value.error);return value}
 async function wait(){for(let i=0;i<80;i++){try{let r=await fetch(base+"/");if(r.ok)return}catch{}await new Promise(r=>setTimeout(r,80))}throw Error("Server failed to start")}
 test("TV + cellulari: stanza, giocatori, 3 fasi e dadi segreti",async()=>{
- const proc=spawn(process.execPath,["server.js"],{env:{...process.env,PORT:String(PORT)},stdio:"pipe"});
+ const proc=spawn(process.execPath,["server.js"],{env:{...process.env,PORT:String(PORT),CUCUZZE_DATA_FILE:require("node:path").join(require("node:os").tmpdir(),"cucuzze-basic-"+process.pid+".json")},stdio:"pipe"});
  try{
   await wait();const {code}=await post("create");assert.match(code,/^\d{4}$/);
   const a=await post("join",{code,name:"Anna"}),b=await post("join",{code,name:"Bruno"});
