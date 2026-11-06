@@ -13,4 +13,5 @@ jobs:
           node-version: '22'
       - run: node --check server.js
       - run: node --check public/app.js
+      - run: node --check docs/game.js
       - run: node --test test/*.test.js
