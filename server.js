@@ -1,7 +1,7 @@
 const http=require("http"),fs=require("fs"),path=require("path"),crypto=require("crypto");
 const PORT=Number(process.env.PORT||8080),ROOT=path.join(__dirname,"public"),games=new Map();
 const os=require("os");const ips=Object.values(os.networkInterfaces()).flat().filter(x=>x&&x.family==="IPv4"&&!x.internal);const LAN_IP=(ips[0]||{}).address||"localhost";
-const DATA_FILE=path.join(__dirname,".cucuzze-sessions.json");
+const DATA_FILE=process.env.CUCUZZE_DATA_FILE||path.join(__dirname,".cucuzze-sessions.json");
 try{const saved=JSON.parse(fs.readFileSync(DATA_FILE,"utf8"));for(const x of saved){x.clients=new Set();if(!x.contracts)x.contracts=[];games.set(x.code,x)}}catch{}
 function persist(){const data=[...games.values()].map(({clients,...rest})=>rest);const tmp=DATA_FILE+".tmp";try{fs.writeFileSync(tmp,JSON.stringify(data));fs.renameSync(tmp,DATA_FILE)}catch(e){console.error("Non è possibile salvare la partita:",e.message)}}
 const rand=()=>1+Math.floor(Math.random()*6),id=()=>crypto.randomBytes(8).toString("hex");
@@ -34,7 +34,7 @@ function resolve(g){
  } else if(g.stage===1){
   for(let {p,o,c} of by("raccolto")){let n=Math.min(p.seeds,o.dice.reduce((z,i)=>z+p.dice[i],0)+boost(c));p.seeds-=n;p.pumpkins+=n;log(g,"🎃 "+p.name+" raccoglie "+n)}
   for(let {p,o} of by("recinto")){let count=Math.min(o.dice.length,2-p.fence,Math.floor(p.pumpkins/2));p.pumpkins-=count*2;p.fence+=count;log(g,"🪵 "+p.name+" costruisce "+count+" livelli di recinto")}
-  for(let {p,o} of by("mercato")){let t=find(o.target);if(t&&t!==p){let n=Math.min(p.pumpkins,o.dice.length);p.pumpkins-=n;t.pumpkins+=n;p.pumpkins+=n;log(g,"🤝 "+p.name+" regala "+n+" zucche a "+t.name+" e riceve "+n+" dal mercato")}}
+  for(let {p,o} of by("mercato")){let t=find(o.target);if(t&&t!==p){let n=Math.min(p.pumpkins,o.dice.length);p.pumpkins-=n;t.pumpkins+=n;p.pumpkins+=Math.min(1,n);log(g,"🤝 "+p.name+" dona "+n+" zucche a "+t.name+" e ottiene un bonus di mercato di "+Math.min(1,n))}}
  }else{
   let guarded=new Set(by("guardia").map(x=>x.p.id));
   for(let {p,o} of by("sabotaggio")){let t=find(o.target);if(!t||t===p)continue;if(guarded.has(t.id))log(g,"🛡️ "+t.name+" blocca il sabotaggio di "+p.name);else{t.fence=Math.max(0,t.fence-1);log(g,"💣 "+p.name+" sabota "+t.name)}}
