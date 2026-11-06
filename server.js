@@ -1,0 +1,62 @@
+const http=require("http"),fs=require("fs"),path=require("path"),crypto=require("crypto");
+const PORT=Number(process.env.PORT||8080),ROOT=path.join(__dirname,"public"),games=new Map();
+const rand=()=>1+Math.floor(Math.random()*6),id=()=>crypto.randomBytes(8).toString("hex");
+const stages=["Alba","Tramonto","Notte"];
+const ACTIONS=[["semina","contadino","cinghiale"],["raccolto","recinto","mercato"],["procioni","guardia","sabotaggio"]];
+const out=(res,code,obj)=>{res.writeHead(code,{"content-type":"application/json;charset=utf-8","cache-control":"no-store"});res.end(JSON.stringify(obj))};
+const log=(g,s)=>{g.history.push(s);g.history=g.history.slice(-28)};
+function view(g,token){let me=g.players.find(p=>p.token===token);return {code:g.code,started:g.started,finished:g.finished,day:g.day,stage:g.stage,board:g.board.map((v,i)=>i<=g.stage?v:null),farmer:g.farmer,boar:g.boar,players:g.players.map(p=>({id:p.id,name:p.name,pumpkins:p.pumpkins,seeds:p.seeds,fence:p.fence,ready:p.ready})),me:me?{id:me.id,name:me.name,dice:me.dice,spent:me.spent,orders:me.orders,ready:me.ready}:null,history:g.history.slice(-12),host:!me}};
+function broadcast(g){for(const c of [...g.clients]){try{c.res.write("data: "+JSON.stringify(view(g,c.token))+"\n\n")}catch{g.clients.delete(c)}}}
+function newGame(){let code;do{code=String(Math.floor(1000+Math.random()*9000))}while(games.has(code));let g={code,started:false,finished:false,day:1,stage:0,board:[rand(),rand(),rand()],players:[],farmer:0,boar:0,history:[],clients:new Set()};games.set(code,g);return g}
+function combination(g,p,order){let own=order.dice.map(i=>p.dice[i]),pool=own.concat(g.board.slice(0,g.stage+1));return {pair:own.some(n=>pool.filter(x=>x===n).length>=2),straight:own.some(n=>pool.includes(n-1)&&pool.includes(n+1))}};
+function resolve(g){
+ let orders=g.players.flatMap(p=>p.orders.map(o=>({p,o,c:combination(g,p,o)})));
+ let by=a=>orders.filter(x=>x.o.action===a);
+ let find=id=>g.players.find(p=>p.id===id);
+ if(g.stage===0){
+  for(let {p,o,c} of by("semina")){let n=Math.min(4,p.dice[o.dice[0]])+(c.pair?2:0);p.seeds+=n;log(g,"🌱 "+p.name+" semina "+n+" zucche")}
+  for(let {p,o,c} of by("contadino")){let n=p.dice[o.dice[0]]+(c.straight?2:0);g.farmer=(g.farmer+(o.direction==="left"?-n:n)%g.players.length+g.players.length*10)%g.players.length;log(g,"🚜 "+p.name+" sposta il Contadino da "+g.players[g.farmer].name)}
+  for(let {p,o,c} of by("cinghiale")){let n=p.dice[o.dice[0]]+(c.straight?2:0);g.boar=(g.boar+(o.direction==="left"?-n:n)%g.players.length+g.players.length*10)%g.players.length;log(g,"🐗 "+p.name+" indirizza il Cinghiale verso "+g.players[g.boar].name)}
+  let f=g.players[g.farmer];f.seeds+=2;log(g,"🚜 Il Contadino aiuta "+f.name+" (+2 semi)");
+  let b=g.players[g.boar],lost=Math.min(2,b.seeds);b.seeds-=lost;log(g,"🐗 Il Cinghiale distrugge "+lost+" semi di "+b.name);
+ } else if(g.stage===1){
+  for(let {p,o,c} of by("raccolto")){let n=Math.min(p.seeds,p.dice[o.dice[0]]+(c.pair?2:0));p.seeds-=n;p.pumpkins+=n;log(g,"🎃 "+p.name+" raccoglie "+n)}
+  for(let {p} of by("recinto")){if(p.pumpkins>=2&&p.fence<2){p.pumpkins-=2;p.fence++;log(g,"🪵 "+p.name+" costruisce il recinto "+p.fence)}else log(g,"🪵 "+p.name+" non può costruire")}
+  for(let {p,o} of by("mercato")){let t=find(o.target);if(t&&t!==p&&p.pumpkins){p.pumpkins--;t.pumpkins++;p.pumpkins++;log(g,"🤝 "+p.name+" dona 1 zucca a "+t.name+" e ne riceve 1 dal mercato")}}
+ }else{
+  let guarded=new Set(by("guardia").map(x=>x.p.id));
+  for(let {p,o} of by("sabotaggio")){let t=find(o.target);if(!t||t===p)continue;if(guarded.has(t.id))log(g,"🛡️ "+t.name+" blocca il sabotaggio di "+p.name);else{t.fence=Math.max(0,t.fence-1);log(g,"💣 "+p.name+" sabota "+t.name)}}
+  let thefts=new Map();
+  for(let {p,o,c} of by("procioni")){let t=find(o.target);if(!t||t===p)continue;if(guarded.has(t.id)){log(g,"🛡️ "+t.name+" respinge i procioni di "+p.name);continue}let amount=Math.max(0,Math.min(2+(c.pair?1:0),2-t.fence));if(!thefts.has(t.id))thefts.set(t.id,[]);thefts.get(t.id).push({p,amount})}
+  for(let [tid,attackers] of thefts){let victim=find(tid);for(let {p,amount} of attackers.sort((a,b)=>a.p.id.localeCompare(b.p.id))){let n=Math.min(victim.pumpkins,amount);victim.pumpkins-=n;p.pumpkins+=n;log(g,"🦝 "+p.name+" ruba "+n+" zucche a "+victim.name)}}
+  for(let {p} of by("guardia"))log(g,"🔦 "+p.name+" monta la guardia");
+ }
+ for(let p of g.players){p.spent.push(...p.orders.flatMap(o=>o.dice));p.orders=[];p.ready=false}
+ log(g,"✅ "+stages[g.stage]+" conclusa");
+ if(g.stage<2)g.stage++;else if(g.day<6){g.day++;g.stage=0;g.board=[rand(),rand(),rand()];for(let p of g.players){p.dice=Array.from({length:6},rand);p.spent=[]}log(g,"☀️ Inizia il giorno "+g.day)}
+ else{g.finished=true;let winners=[...g.players].sort((a,b)=>b.pumpkins-a.pumpkins);log(g,"🏆 Vince "+winners[0].name+" con "+winners[0].pumpkins+" zucche")}
+ broadcast(g);
+}
+function requestBody(req){return new Promise((ok,bad)=>{let data="";req.on("data",x=>{data+=x;if(data.length>12000)bad(Error("Richiesta troppo grande"))});req.on("end",()=>{try{ok(JSON.parse(data||"{}"))}catch{bad(Error("JSON non valido"))}})})}
+http.createServer(async(req,res)=>{
+ try{
+  let url=new URL(req.url,"http://localhost");
+  if(req.method==="GET"&&url.pathname==="/events"){let g=games.get(url.searchParams.get("code"));if(!g)return out(res,404,{error:"Stanza inesistente"});res.writeHead(200,{"content-type":"text/event-stream","cache-control":"no-cache, no-transform","connection":"keep-alive"});let client={res,token:url.searchParams.get("token")};g.clients.add(client);res.write("data: "+JSON.stringify(view(g,client.token))+"\n\n");req.on("close",()=>g.clients.delete(client));return}
+  if(req.method==="POST"&&url.pathname.startsWith("/api/")){
+   let d=await requestBody(req),cmd=url.pathname.slice(5);
+   if(cmd==="create"){let g=newGame();return out(res,200,{code:g.code})}
+   let g=games.get(d.code);if(!g)throw Error("Stanza non trovata");
+   if(cmd==="join"){if(g.started||g.players.length>=10)throw Error("Stanza già avviata o piena");let name=String(d.name||"").trim().slice(0,20);if(!name)throw Error("Inserisci il nome");let p={id:id(),token:id(),name,pumpkins:5,seeds:0,fence:0,dice:[],spent:[],orders:[],ready:false};g.players.push(p);broadcast(g);return out(res,200,{token:p.token})}
+   if(cmd==="start"){if(g.started||g.players.length<2)throw Error("Servono almeno 2 giocatori");g.started=true;g.players.forEach(p=>p.dice=Array.from({length:6},rand));log(g,"🎲 Comincia Cucuzze!");broadcast(g);return out(res,200,{ok:true})}
+   if(!g.started||g.finished)throw Error("Partita non attiva");
+   if(cmd==="advance"){if(!g.players.every(p=>p.ready))throw Error("Aspetta tutte le conferme");resolve(g);return out(res,200,{ok:true})}
+   let p=g.players.find(p=>p.token===d.token);if(!p)throw Error("Giocatore sconosciuto");
+   if(cmd==="place"){if(p.ready)throw Error("Già confermato");if(!ACTIONS[g.stage].includes(d.action))throw Error("Azione non disponibile");let dice=d.dice;if(!Array.isArray(dice)||dice.length<1||dice.length>3||dice.some(i=>!Number.isInteger(i)||i<0||i>=6)||new Set(dice).size!==dice.length)throw Error("Dadi non validi");let occupied=p.orders.flatMap(o=>o.dice);if(occupied.length+dice.length>3||dice.some(i=>p.spent.includes(i)||occupied.includes(i)))throw Error("Dado occupato o limite di fase raggiunto");if(["mercato","procioni","sabotaggio"].includes(d.action)&&(!g.players.some(t=>t.id===d.target&&t!==p)))throw Error("Scegli un bersaglio");p.orders.push({action:d.action,dice,target:d.target||null,direction:d.direction==="left"?"left":"right"});broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="undo"){if(p.ready)throw Error("Scelta già confermata");p.orders.pop();broadcast(g);return out(res,200,{ok:true})}
+   if(cmd==="ready"){p.ready=true;broadcast(g);return out(res,200,{ok:true})}
+   throw Error("Comando sconosciuto");
+  }
+  if(req.method==="GET"){let relative=url.pathname==="/"?"/index.html":url.pathname,fp=path.resolve(ROOT,"."+relative);if(!fp.startsWith(ROOT+path.sep)||!fs.existsSync(fp)||!fs.statSync(fp).isFile()){res.writeHead(404);return res.end("Not found")}let ct=fp.endsWith(".html")?"text/html; charset=utf-8":fp.endsWith(".js")?"text/javascript; charset=utf-8":"text/css; charset=utf-8";res.writeHead(200,{"content-type":ct});return fs.createReadStream(fp).pipe(res)}
+  out(res,405,{error:"Metodo non supportato"});
+ }catch(e){out(res,400,{error:e.message})}
+}).listen(PORT,"0.0.0.0",()=>console.log("CUCUZZE http://localhost:"+PORT));
