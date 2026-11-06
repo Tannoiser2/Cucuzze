@@ -1,3 +1,23 @@
+# 🎃 CUCUZZE — Apri la TV, scansiona il QR, gioca
+
+## 🌐 Modalità normale: ZERO server da avviare
+
+Una volta attivato GitHub Pages, apri questo indirizzo direttamente sul browser della TV:
+
+**https://tannoiser2.github.io/Cucuzze/**
+
+Premi **📺 Crea partita sulla TV**. Compare un **QR code**: gli invitati lo scansionano, scrivono il nome e giocano dal telefono. Nessuna app, nessun Terminale, nessun IP locale e nessun requisito di usare la stessa Wi-Fi.
+
+La TV ospita la partita nel browser. I cellulari si connettono via **WebRTC con PeerJS Cloud** (servizio gratuito di segnalazione). La TV deve rimanere aperta, tutti hanno bisogno di Internet, e su alcune reti restrittive WebRTC può non connettersi.
+
+### Attivazione iniziale (una volta sola)
+
+Se l'indirizzo mostra 404: apri [Settings → Pages](https://github.com/Tannoiser2/Cucuzze/settings/pages) e seleziona **Source: GitHub Actions**. Il workflow `.github/workflows/pages.yml` pubblica automaticamente i file della cartella `docs/`. Poi verifica lo stato dalla scheda [Actions](https://github.com/Tannoiser2/Cucuzze/actions). È una configurazione di pubblicazione GitHub, **non** un server da avviare a ogni partita.
+
+Il vecchio server Node.js rimane nel repository esclusivamente come **alternativa per test locali**, e non è necessario per la modalità normale.
+
+---
+
 # 🎃 CUCUZZE — La guerra degli orti
 
 **Gioco da festa multiplayer per TV + telefoni**. Ogni partecipante possiede un campo, coltiva zucche, fa affari e negozia tregue. Di notte, i procioni degli avversari e i sabotaggi possono far saltare tutto.
