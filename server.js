@@ -47,7 +47,7 @@ function resolve(g){
  for(let p of g.players){p.spent.push(...p.orders.flatMap(o=>o.dice));p.orders=[];p.ready=false}
  log(g,"✅ "+stages[g.stage]+" conclusa");
  if(g.stage<2)g.stage++;else if(g.day<6){g.day++;g.stage=0;g.board=[rand(),rand(),rand()];for(let p of g.players){p.dice=Array.from({length:6},rand);p.spent=[]}log(g,"☀️ Inizia il giorno "+g.day)}
- else{g.finished=true;let winners=[...g.players].sort((a,b)=>b.pumpkins-a.pumpkins);log(g,"🏆 Vince "+winners[0].name+" con "+winners[0].pumpkins+" zucche")}
+ else{g.finished=true;let ranking=[...g.players].sort((a,b)=>b.pumpkins-a.pumpkins),winners=ranking.filter(p=>p.pumpkins===ranking[0].pumpkins);log(g,winners.length===1?"🏆 Vince "+winners[0].name+" con "+winners[0].pumpkins+" zucche":"🏆 Pareggio! "+winners.map(p=>p.name).join(", ")+" con "+ranking[0].pumpkins+" zucche")}
  persist();broadcast(g);
 }
 function requestBody(req){return new Promise((ok,bad)=>{let data="";req.on("data",x=>{data+=x;if(data.length>12000)bad(Error("Richiesta troppo grande"))});req.on("end",()=>{try{ok(JSON.parse(data||"{}"))}catch{bad(Error("JSON non valido"))}})})}
