@@ -14,7 +14,7 @@ cd Cucuzze
 node server.js
 ```
 
-Apri `http://localhost:8080/` sulla TV (o sul Mac collegato alla TV) e seleziona **Crea partita sulla TV**. Sul tabellone trovi un **codice stanza**, un **indirizzo di accesso** e, con connessione Internet per caricare la libreria QR, anche un **QR code**. Gli ospiti, collegati alla stessa Wi-Fi, aprono dal cellulare l'indirizzo indicato e scelgono un nome. Se la TV non carica il QR, basta copiare il link o digitare l'indirizzo e il codice.
+Apri `http://localhost:8080/` **sul Mac** oppure `http://IP-DEL-MAC:8080/` **sulla TV TCL** (e sugli altri dispositivi della stessa rete) e seleziona **Crea partita sulla TV**. Sul tabellone trovi un **codice stanza**, un **indirizzo di accesso** e, con connessione Internet per caricare la libreria QR, anche un **QR code**. Gli ospiti, collegati alla stessa Wi-Fi, aprono dal cellulare l'indirizzo indicato e scelgono un nome. Se la TV non carica il QR, basta copiare il link o digitare l'indirizzo e il codice.
 
 Se `8080` è occupata: `PORT=8123 node server.js`, quindi usa la porta 8123 anche sugli altri dispositivi. Per trovare l'IP locale del Mac: `ipconfig getifaddr en0` (se non è la scheda attiva, verifica l'IP nelle impostazioni Rete).
 
