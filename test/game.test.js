@@ -7,24 +7,24 @@ async function wait(){for(let i=0;i<80;i++){try{let r=await fetch(base+"/");if(r
 test("TV + cellulari: stanza, giocatori, 3 fasi e dadi segreti",async()=>{
  const proc=spawn(process.execPath,["server.js"],{env:{...process.env,PORT:String(PORT),CUCUZZE_DATA_FILE:require("node:path").join(require("node:os").tmpdir(),"cucuzze-basic-"+process.pid+".json")},stdio:"pipe"});
  try{
-  await wait();const {code}=await post("create");assert.match(code,/^\d{4}$/);
+  await wait();const {code,hostToken}=await post("create");assert.match(code,/^\d{4}$/);
   const a=await post("join",{code,name:"Anna"}),b=await post("join",{code,name:"Bruno"});
-  await post("start",{code});
+  await post("start",{code,hostToken});
   // Alba: each player can place dice and then confirms independently
   await post("place",{code,token:a.token,action:"semina",dice:[0]});
   await post("place",{code,token:b.token,action:"contadino",dice:[0],direction:"right"});
   await post("ready",{code,token:a.token});await post("ready",{code,token:b.token});
-  await post("advance",{code});
+  await post("advance",{code,hostToken});
   // Tramonto
   await post("place",{code,token:a.token,action:"raccolto",dice:[1]});
   await post("place",{code,token:b.token,action:"mercato",dice:[1],target:(await getPlayerId(code,a.token))});
   await post("ready",{code,token:a.token});await post("ready",{code,token:b.token});
-  await post("advance",{code});
+  await post("advance",{code,hostToken});
   // Notte
   await post("place",{code,token:a.token,action:"guardia",dice:[2]});
   await post("place",{code,token:b.token,action:"procioni",dice:[2],target:(await getPlayerId(code,a.token))});
   await post("ready",{code,token:a.token});await post("ready",{code,token:b.token});
-  await post("advance",{code});
+  await post("advance",{code,hostToken});
   assert.equal((await post("create")).code.length,4);
  }finally{proc.kill("SIGTERM")}
 });
