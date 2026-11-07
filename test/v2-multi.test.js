@@ -23,3 +23,13 @@ test('il turno è guidato per fasi e comprende 30 eventi con asta',()=>{
   const names=(js.match(/\['[^']+','[^']+'\]/g)||[]).filter(x=>!x.includes("'🎪'")&&!x.includes("'🌱'")&&!x.includes("'🛡️'")&&!x.includes("'🐾'"));
   assert.ok(names.length>=30,'devono esserci almeno 30 carte evento');
 });
+
+test('la risoluzione racconta ogni singolo attacco con viaggio e bottino',()=>{
+  assert.match(js,/buildStory/);
+  assert.match(js,/attackerName/);
+  assert.match(js,/I \$\{animal\} di/);
+  assert.match(js,/story-flight/);
+  assert.match(js,/flying-loot/);
+  assert.match(html,/storyTravel/);
+  assert.match(html,/lootReturn/);
+});
