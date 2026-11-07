@@ -175,7 +175,7 @@ function landing() {
   if (remote && !codeError) { connectGuest(remote); return }
   mode = null; setBody("tel", "ph-sala");
   const saved = loadSaved();
-  root.innerHTML = '<div class="tel-wrap" style="max-width:640px"><div class="banner" style="margin:1em auto 0"><span>Cucuzze</span></div>' +
+  root.innerHTML = '<div class="tel-wrap" style="max-width:640px"><img class="copertina" src="' + A("copertina") + '" alt="Cucuzze">' +
     '<div class="pannello"><h2>Gioca sulla TV</h2>' +
     (saved ? '<button id="resume" class="verde" style="width:100%;margin-bottom:.6em">Riprendi la partita in corso (giorno ' + saved.game.day + ', ' + saved.game.players.length + ' giocatori)</button>' : "") +
     '<button id="create" style="width:100%">Crea una partita sulla TV</button><p class="muto">Compare un QR code: gli invitati lo inquadrano col telefono e sono dentro.</p>' +
@@ -249,7 +249,7 @@ function drawTV() {
 
 function drawLobby(s) {
   setBody("tv", "ph-sala");
-  root.innerHTML = '<div class="sala"><div class="pannello"><div class="banner" style="margin:0 auto"><span>Cucuzze</span></div><h2 class="centro">La guerra degli orti</h2>' + regoleHTML() + '</div>' +
+  root.innerHTML = '<div class="sala"><div class="pannello sala-copertina"><img class="copertina" src="' + A("copertina") + '" alt="Cucuzze"><div><h2>La guerra degli orti</h2>' + regoleHTML() + '</div></div>' +
     '<div class="pannello centro"><h2>Sala d\'attesa</h2><p>Inquadra il QR code con il telefono</p><div class="qr" id="qrcode"></div><p class="muto" style="word-break:break-all">' + esc(link()) + '</p>' +
     '<h3>' + s.players.length + ' giocatori</h3><div class="giocatori-sala" style="justify-content:center">' + s.players.map(p => '<span class="chip">' + esc(p.name) + (p.bot ? ' <span class="pill bot">finto</span> <button class="chiaro piccolo" data-rm="' + esc(p.id) + '">Togli</button>' : "") + '</span>').join("") + '</div>' +
     '<div class="controlli"><button class="chiaro" id="bot">Aggiungi giocatore finto</button><button id="start" ' + (s.players.length < 2 ? "disabled" : "") + '>Inizia la partita</button></div>' + (s.players.length < 2 ? '<p class="muto">Servono almeno 2 giocatori (anche finti).</p>' : "") + '</div></div>';
