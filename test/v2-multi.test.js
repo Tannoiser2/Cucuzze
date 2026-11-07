@@ -13,3 +13,13 @@ test('il telefono riceve solo i propri dadi',()=>{
   assert.match(js,/dice:me\.dice/);
   assert.doesNotMatch(js,/dice:p\.dice/);
 });
+
+test('il turno è guidato per fasi e comprende 30 eventi con asta',()=>{
+  assert.match(js,/STAGES=\['event','sow','defend','attack'\]/);
+  assert.match(js,/type:'phaseOrder'/);
+  assert.match(js,/PASSO QUESTA FASE/);
+  assert.match(js,/vince l’asta con il dado/);
+  assert.match(js,/EVENT_NAMES/);
+  const names=(js.match(/\['[^']+','[^']+'\]/g)||[]).filter(x=>!x.includes("'🎪'")&&!x.includes("'🌱'")&&!x.includes("'🛡️'")&&!x.includes("'🐾'"));
+  assert.ok(names.length>=30,'devono esserci almeno 30 carte evento');
+});
