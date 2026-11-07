@@ -28,8 +28,16 @@ test('la risoluzione racconta ogni singolo attacco con viaggio e bottino',()=>{
   assert.match(js,/buildStory/);
   assert.match(js,/attackerName/);
   assert.match(js,/I \$\{animal\} di/);
-  assert.match(js,/story-flight/);
-  assert.match(js,/flying-loot/);
+  assert.match(js,/story-stage/);
+  assert.match(js,/pickup/);
   assert.match(html,/storyTravel/);
   assert.match(html,/lootReturn/);
+  assert.match(js,/animal-back/);
+  assert.match(js,/pumpkin-burst/);
+  assert.match(js,/seed-rain/);
+  assert.match(js,/market-scene/);
+  assert.match(html,/returnHome/);
+  assert.match(html,/burstPumpkins/);
+  assert.match(html,/seedFall/);
+  assert.match(html,/cartAcross/);
 });
