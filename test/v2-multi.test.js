@@ -15,9 +15,9 @@ test('il telefono riceve solo i propri dadi',()=>{
 });
 
 test('il turno è guidato per fasi e comprende 30 eventi con asta',()=>{
-  assert.match(js,/STAGES=\['event','sow','defend','attack'\]/);
+  assert.match(js,/STAGES=\['event','sow','attack','defend'\]/);
   assert.match(js,/type:'phaseOrder'/);
-  assert.match(js,/NON PARTECIPO \/ PASSO/);
+  assert.match(js,/NON PARTECIPO ALL’ASTA/);
   assert.match(js,/PUNTA IL DADO/);
   assert.match(js,/Campo da pilotare/);
   assert.match(js,/vince l’asta con il dado/);
@@ -50,4 +50,14 @@ test('la cronaca non copre i campi e i raccolti grandi sono compattati',()=>{
   assert.match(js,/harvest-stack/);
   assert.match(html,/story-header/);
   assert.match(js,/Hai puntato il dado/);
+});
+
+test('gli attacchi sono dichiarati e la difesa reagisce con previsioni leggibili',()=>{
+  assert.match(js,/declareAttacks/);
+  assert.match(js,/declaredAttacks/);
+  assert.match(js,/In arrivo sul tuo campo/);
+  assert.match(js,/Attacco probabilmente respinto/);
+  assert.match(js,/Puoi colpire circa/);
+  assert.match(js,/Questo evento è automatico/);
+  assert.match(html,/declaration-layer/);
 });
