@@ -62,6 +62,9 @@ test('gli attacchi restano segreti e la difesa conosce soltanto il loro numero',
   assert.match(js,/Contadino con la lupara/);
   assert.match(html,/alarm-layer/);
   assert.match(html,/pumpkin\.seedling/);
-  assert.match(js,/ARRIVA TRA/);
-  assert.match(html,/market-cart/);
+  assert.doesNotMatch(js,/ARRIVA TRA/);
+  assert.match(js,/market-progress/);
+  assert.match(html,/market-progress/);
+  assert.match(html,/\.tv-field \.who\{left:50%/);
+  assert.match(html,/\.alarm-layer strong/);
 });
