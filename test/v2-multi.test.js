@@ -46,7 +46,7 @@ test('la risoluzione racconta ogni singolo attacco con viaggio e bottino',()=>{
 
 test('la cronaca non copre i campi e i raccolti grandi sono compattati',()=>{
   assert.doesNotMatch(js,/class="scene-caption"/);
-  assert.match(js,/Math\.min\(n,12\)/);
+  assert.match(js,/Math\.min\(n,24\)/);
   assert.match(js,/harvest-stack/);
   assert.match(html,/story-header/);
   assert.match(js,/Hai puntato il dado/);
@@ -60,4 +60,8 @@ test('gli attacchi sono dichiarati e la difesa reagisce con previsioni leggibili
   assert.match(js,/Puoi colpire circa/);
   assert.match(js,/Questo evento è automatico/);
   assert.match(html,/declaration-layer/);
+  assert.match(js,/advanceDeclarations/);
+  assert.match(js,/s\.kind==='declaration'/);
+  assert.match(js,/ARRIVA TRA/);
+  assert.match(html,/market-cart/);
 });
