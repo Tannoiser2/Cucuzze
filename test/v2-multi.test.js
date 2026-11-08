@@ -17,7 +17,9 @@ test('il telefono riceve solo i propri dadi',()=>{
 test('il turno è guidato per fasi e comprende 30 eventi con asta',()=>{
   assert.match(js,/STAGES=\['event','sow','defend','attack'\]/);
   assert.match(js,/type:'phaseOrder'/);
-  assert.match(js,/PASSO QUESTA FASE/);
+  assert.match(js,/NON PARTECIPO \/ PASSO/);
+  assert.match(js,/PUNTA IL DADO/);
+  assert.match(js,/Campo da pilotare/);
   assert.match(js,/vince l’asta con il dado/);
   assert.match(js,/EVENT_NAMES/);
   const names=(js.match(/\['[^']+','[^']+'\]/g)||[]).filter(x=>!x.includes("'🎪'")&&!x.includes("'🌱'")&&!x.includes("'🛡️'")&&!x.includes("'🐾'"));
@@ -40,4 +42,12 @@ test('la risoluzione racconta ogni singolo attacco con viaggio e bottino',()=>{
   assert.match(html,/burstPumpkins/);
   assert.match(html,/seedFall/);
   assert.match(html,/cartAcross/);
+});
+
+test('la cronaca non copre i campi e i raccolti grandi sono compattati',()=>{
+  assert.doesNotMatch(js,/class="scene-caption"/);
+  assert.match(js,/Math\.min\(n,12\)/);
+  assert.match(js,/harvest-stack/);
+  assert.match(html,/story-header/);
+  assert.match(js,/Hai puntato il dado/);
 });
