@@ -58,8 +58,12 @@ test('gli attacchi restano segreti e la difesa conosce soltanto il loro numero',
   assert.match(js,/alarmOverlay/);
   assert.match(js,/MISSIONE CORVI/);
   assert.match(js,/MISSIONE PROCIONI/);
-  assert.match(js,/Contadino col forcone/);
-  assert.match(js,/Contadino con la lupara/);
+  assert.match(js,/lupara contro Corvi/);
+  assert.match(js,/forcone contro Procioni/);
+  assert.match(js,/Rubadado/);
+  assert.match(js,/Rubadifese/);
+  assert.match(js,/Vedetta/);
+  assert.match(js,/Pianificare/);
   assert.match(html,/alarm-layer/);
   assert.match(html,/pumpkin\.seedling/);
   assert.doesNotMatch(js,/ARRIVA TRA/);

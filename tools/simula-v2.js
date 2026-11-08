@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+/* Simulazione riproducibile del motore realmente pubblicato in docs/v2-engine.js. */
+const E=require('../docs/v2-engine.js');
+const N=Math.max(1,+(process.argv[2]||10000)),PLAYERS=Math.max(3,Math.min(10,+(process.argv[3]||8))),SEED=+(process.argv[4]||20261108);
+function rng(seed){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296)}
+const avg=a=>a.reduce((x,y)=>x+y,0)/a.length,percentile=(a,p)=>a.slice().sort((x,y)=>x-y)[Math.min(a.length-1,Math.floor(a.length*p))];
+const out={games:N,players:PLAYERS,seed:SEED,turns:[],winner:[],last:[],margin:[],maxField:[],fundResidual:[],mission:{raid:{used:0,success:0,effect:0},swarm:{used:0,success:0,effect:0},exchange:{used:0,success:0,effect:0},pumpkins:{used:0,success:0,effect:0},die:{used:0,success:0,effect:0},defense:{used:0,success:0,effect:0}},style:{},markets:0};
+for(let k=0;k<N;k++){
+ const r=rng(SEED+k*7919),g=E.newGame(PLAYERS,r);g.players.forEach(p=>p.human=false);let turns=0,gameMax=0;
+ while(!g.finished){if(turns++>20)throw Error('Partita non terminata');E.roll(g,r);for(const p of g.players)E.botOrder(g,p,r);for(const p of g.players){out.mission[p.order.crowMission].used++;out.mission[p.order.raccoonMission].used++}const x=E.resolve(g,r);gameMax=Math.max(gameMax,...(x.marketFields||x.fields).map(p=>p.field));if(x.market)out.markets++;for(const d of x.detail){const m=out.mission[d.mission];if(!m)continue;const ok=d.swapped||d.special||d.effect>0;if(ok)m.success++;m.effect+=d.effect||(+!!d.special)}}
+ const rank=E.standings(g);out.turns.push(turns);out.winner.push(rank[0].pocket);out.last.push(rank.at(-1).pocket);out.margin.push(rank[0].pocket-rank[1].pocket);out.maxField.push(gameMax);out.fundResidual.push(g.fund);const winners=rank.filter(p=>p.pocket===rank[0].pocket);for(const p of g.players){const s=out.style[p.style]??={seats:0,wins:0,payout:0};s.seats++;s.payout+=p.pocket;if(winners.includes(p))s.wins+=1/winners.length}
+}
+const summary={games:N,players:PLAYERS,seed:SEED,turnsAvg:+avg(out.turns).toFixed(2),marketsAvg:+(out.markets/N).toFixed(2),winnerPumpkinsAvg:+avg(out.winner).toFixed(2),winnerEurosAvg:+(avg(out.winner)*.5).toFixed(2),lastPumpkinsAvg:+avg(out.last).toFixed(2),lastEurosAvg:+(avg(out.last)*.5).toFixed(2),firstLastGapEuros:+((avg(out.winner)-avg(out.last))*.5).toFixed(2),firstSecondGapEuros:+(avg(out.margin)*.5).toFixed(2),maxFieldAvg:+avg(out.maxField).toFixed(2),maxFieldP95:percentile(out.maxField,.95),maxFieldAbsolute:Math.max(...out.maxField),fundResidualMax:Math.max(...out.fundResidual),missions:Object.fromEntries(Object.entries(out.mission).map(([k,v])=>[k,{usagePct:+(100*v.used/(PLAYERS*turnsFor(out))).toFixed(1),successPct:+(100*v.success/(v.used||1)).toFixed(1),effectAvg:+(v.effect/(v.success||1)).toFixed(2)}])),styles:Object.fromEntries(Object.entries(out.style).map(([k,v])=>[k,{winIndex:+((v.wins/N)/(v.seats/(N*PLAYERS))).toFixed(2),payoutEurosAvg:+(v.payout/v.seats*.5).toFixed(2)}]))};
+function turnsFor(x){return x.turns.reduce((a,b)=>a+b,0)}
+console.log(JSON.stringify(summary,null,2));
