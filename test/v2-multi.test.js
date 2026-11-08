@@ -15,11 +15,10 @@ test('il telefono riceve solo i propri dadi',()=>{
 });
 
 test('il turno è guidato per fasi e comprende 30 eventi con asta',()=>{
-  assert.match(js,/STAGES=\['event','sow','attack','defend'\]/);
+  assert.match(js,/STAGES=\['event','sow','crows','raccoons','defend'\]/);
   assert.match(js,/type:'phaseOrder'/);
-  assert.match(js,/NON PARTECIPO ALL’ASTA/);
-  assert.match(js,/PUNTA IL DADO/);
-  assert.match(js,/Campo da pilotare/);
+  assert.match(js,/NON PARTECIPO/);
+  assert.match(js,/Bersaglio segreto/);
   assert.match(js,/vince l’asta con il dado/);
   assert.match(js,/EVENT_NAMES/);
   const names=(js.match(/\['[^']+','[^']+'\]/g)||[]).filter(x=>!x.includes("'🎪'")&&!x.includes("'🌱'")&&!x.includes("'🛡️'")&&!x.includes("'🐾'"));
@@ -52,16 +51,17 @@ test('la cronaca non copre i campi e i raccolti grandi sono compattati',()=>{
   assert.match(js,/Hai puntato il dado/);
 });
 
-test('gli attacchi sono dichiarati e la difesa reagisce con previsioni leggibili',()=>{
+test('gli attacchi restano segreti e la difesa conosce soltanto il loro numero',()=>{
   assert.match(js,/declareAttacks/);
   assert.match(js,/declaredAttacks/);
-  assert.match(js,/In arrivo sul tuo campo/);
-  assert.match(js,/Attacco probabilmente respinto/);
-  assert.match(js,/Puoi colpire circa/);
-  assert.match(js,/Questo evento è automatico/);
-  assert.match(html,/declaration-layer/);
-  assert.match(js,/advanceDeclarations/);
-  assert.match(js,/s\.kind==='declaration'/);
+  assert.match(js,/Animali, forza e mandanti restano segreti/);
+  assert.match(js,/alarmOverlay/);
+  assert.match(js,/MISSIONE CORVI/);
+  assert.match(js,/MISSIONE PROCIONI/);
+  assert.match(js,/Contadino col forcone/);
+  assert.match(js,/Contadino con la lupara/);
+  assert.match(html,/alarm-layer/);
+  assert.match(html,/pumpkin\.seedling/);
   assert.match(js,/ARRIVA TRA/);
   assert.match(html,/market-cart/);
 });
